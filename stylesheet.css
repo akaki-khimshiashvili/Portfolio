@@ -88,9 +88,11 @@ svg:hover {
 
 .container {
   max-width: 1400px;
-  margin-inline: auto;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-inline: auto;
 }
 
 .nav-ul {
@@ -204,6 +206,8 @@ svg:hover {
   grid-template-columns: repeat(3, 1fr);
   justify-items: center;
   margin-block: 100px;
+
+  gap: 50px;
 }
 
 .card__img {
@@ -284,6 +288,7 @@ svg:hover {
 .skills-section {
   display: flex;
   justify-content: center;
+  width: 100%;
   border: 2px solid #08ff8c;
   border-radius: 10px;
   margin-block: 75px;
@@ -409,6 +414,11 @@ svg:hover {
   .skills-list li {
     font-size: 24px;
   }
+
+  .card__article {
+    width: 400px;
+    height: auto;
+  }
 }
 
 @media only screen and (max-width: 600px) {
@@ -416,26 +426,36 @@ svg:hover {
     grid-template-columns: repeat(1, 1fr);
     justify-items: center;
     gap: 50px;
-    margin-block: 100px;
+    margin-block: 75px;
   }
 
   .navigation {
-    margin-inline: auto;
-    gap: 1px;
+    display: flex;
+  }
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
   .header {
-    max-width: 95%;
-    margin-inline: auto;
+    max-width: 100%;
   }
 
   .name-surname {
-    font-size: 65px;
+    font-size: 52px;
     align-items: center;
   }
 
+  .card__article {
+    width: 370px;
+    height: auto;
+  }
+
   .occupation {
-    font-size: 42px;
+    font-size: 35px;
   }
 
   .logo {
@@ -445,10 +465,11 @@ svg:hover {
   .skills-list {
     display: flex;
     flex-direction: column;
-    padding-block: 40px;
+    /* padding-block: 10px; */
     align-items: center;
     justify-content: center;
   }
+
   .skills-list li {
     color: #fff;
     font-size: 18px;
@@ -459,9 +480,14 @@ svg:hover {
 
   .nav-ul {
     gap: 7px;
+    display: flex;
+    gap: 20px;
   }
 
   .nav-ul li a {
-    font-size: 20px;
+    font-size: 15px;
+    padding-block: 5px;
+    padding-inline: 7px;
+    display: flex;
   }
 }
