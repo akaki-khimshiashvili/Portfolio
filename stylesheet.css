@@ -211,8 +211,9 @@ svg:hover {
 }
 
 .card__img {
-  width: 400px;
-  height: 280px;
+  /* width: 400px;
+  height: 280px; */
+  aspect-ratio: 10 / 7;
 }
 
 .card__article {
@@ -441,7 +442,7 @@ svg:hover {
   }
 
   .header {
-    max-width: 100%;
+    max-width: 90%;
   }
 
   .name-surname {
@@ -450,7 +451,7 @@ svg:hover {
   }
 
   .card__article {
-    width: 370px;
+    width: 340px;
     height: auto;
   }
 
