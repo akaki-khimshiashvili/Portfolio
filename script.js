@@ -51,6 +51,7 @@
 
   /* ---------- Terminal typewriter (hero) ---------- */
   const terminalBody = document.querySelector("[data-terminal]");
+  const terminalWindow = document.querySelector(".terminal");
 
   if (terminalBody) {
     const typedEls = Array.from(terminalBody.querySelectorAll("[data-typed]"));
@@ -59,13 +60,42 @@
     // Read the real text before touching it, so the terminal degrades to
     // fully readable static text if JS never runs or reduced motion is on.
     typedEls.forEach((el) => {
-      el.dataset.fullText = el.textContent;
+      if (!el.dataset.fullText) el.dataset.fullText = el.textContent;
     });
 
-    if (prefersReducedMotion) {
-      if (finalLine) finalLine.classList.add("is-visible");
-    } else {
+    let running = false;
+    let pendingTimers = [];
+
+    function clearPendingTimers() {
+      pendingTimers.forEach((id) => clearInterval(id));
+      pendingTimers = [];
+    }
+
+    function showInstantly() {
+      clearPendingTimers();
       typedEls.forEach((el) => {
+        el.classList.remove("is-typing");
+        el.textContent = el.dataset.fullText || "";
+      });
+      if (finalLine) finalLine.classList.add("is-visible");
+      running = false;
+    }
+
+    function runTypewriter() {
+      if (prefersReducedMotion) {
+        showInstantly();
+        return;
+      }
+
+      // Guard against double-starts (e.g. the transitionend listener and
+      // the safety-net timeout both firing).
+      if (running) return;
+      running = true;
+
+      clearPendingTimers();
+      if (finalLine) finalLine.classList.remove("is-visible");
+      typedEls.forEach((el) => {
+        el.classList.remove("is-typing");
         el.textContent = "";
       });
 
@@ -74,6 +104,7 @@
       function typeNext() {
         if (index >= typedEls.length) {
           if (finalLine) finalLine.classList.add("is-visible");
+          running = false;
           return;
         }
 
@@ -91,17 +122,60 @@
 
           if (charIndex >= text.length) {
             clearInterval(interval);
+            pendingTimers = pendingTimers.filter((id) => id !== interval);
             el.classList.remove("is-typing");
             index++;
             setTimeout(typeNext, isOutput ? 260 : 120);
           }
         }, speed);
+
+        pendingTimers.push(interval);
       }
 
-      // Wait for the terminal window's own fade/blur entrance (--d: 200ms,
-      // 800ms duration) to finish before the first character appears.
-      setTimeout(typeNext, 950);
+      typeNext();
     }
+
+    // Start once the terminal window's own fade/blur entrance actually
+    // finishes, instead of guessing a fixed delay that can fire too early
+    // (typing over an still-blurred window) or, on a slow first paint,
+    // too late relative to that guess. A timeout still backs it up in case
+    // the transition never runs (reduced motion edge cases, the reveal
+    // never triggering) so the terminal never gets stuck blank.
+    function startWhenSettled() {
+      if (!terminalWindow || prefersReducedMotion) {
+        runTypewriter();
+        return;
+      }
+
+      let started = false;
+      const start = () => {
+        if (started) return;
+        started = true;
+        runTypewriter();
+      };
+
+      terminalWindow.addEventListener(
+        "transitionend",
+        (event) => {
+          if (event.target === terminalWindow) start();
+        },
+        { once: true }
+      );
+      setTimeout(start, 1400);
+    }
+
+    startWhenSettled();
+
+    // A page restored from the back/forward cache keeps whatever DOM state
+    // it was frozen in (mid-type, or emptied but never finished) and does
+    // not re-run this script, so without this the terminal can come back
+    // permanently blank. Replay it from scratch whenever that happens.
+    window.addEventListener("pageshow", (event) => {
+      if (event.persisted) {
+        running = false;
+        startWhenSettled();
+      }
+    });
   }
 
   /* ---------- Scroll reveal ---------- */
