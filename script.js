@@ -5,6 +5,59 @@
     "(prefers-reduced-motion: reduce)"
   ).matches;
 
+  /* ---------- Preloader / ready gate ----------
+   * Everything below used to run the moment this deferred script parsed,
+   * which is often before fonts have swapped in or images have settled.
+   * Starting reveal observers, the tagline split and the terminal
+   * typewriter against a page that is still reflowing is what caused
+   * animations to occasionally stall mid-way or never fire at all.
+   * Instead we hide the page behind a preloader and only wire up any of
+   * that once the page has actually finished loading (fonts + window
+   * "load"), with a safety timeout so a slow asset can never leave the
+   * site stuck behind the preloader indefinitely.
+   */
+  const preloader = document.querySelector("[data-preloader]");
+
+  function whenReady() {
+    return new Promise((resolve) => {
+      let settled = false;
+      const done = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+
+      const fontsReady =
+        document.fonts && document.fonts.ready
+          ? document.fonts.ready.catch(() => {})
+          : Promise.resolve();
+
+      const pageLoaded =
+        document.readyState === "complete"
+          ? Promise.resolve()
+          : new Promise((res) => window.addEventListener("load", res, { once: true }));
+
+      Promise.all([fontsReady, pageLoaded]).then(done);
+
+      // Never block the page for more than 3s (slow network, a stalled
+      // font or the third-party icon script failing to load, etc.).
+      setTimeout(done, 3000);
+    });
+  }
+
+  function hidePreloader() {
+    document.body.classList.remove("is-loading");
+    if (!preloader) return;
+
+    preloader.classList.add("is-hidden");
+    preloader.addEventListener("transitionend", () => preloader.remove(), {
+      once: true,
+    });
+    // Fallback in case the transition never fires.
+    setTimeout(() => preloader.remove(), 700);
+  }
+
+  function init() {
   /* ---------- Footer year ---------- */
   const yearEl = document.querySelector("[data-year]");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
@@ -62,6 +115,18 @@
     typedEls.forEach((el) => {
       if (!el.dataset.fullText) el.dataset.fullText = el.textContent;
     });
+
+    // Blank the lines out immediately (synchronously, before the preloader
+    // finishes fading and anything gets painted) so the fully-written
+    // fallback text never flashes on screen. Without this it sits there
+    // fully typed for up to ~1s while the terminal's own reveal-in
+    // transition plays, then visibly gets wiped and retyped from scratch.
+    if (!prefersReducedMotion) {
+      typedEls.forEach((el) => {
+        el.textContent = "";
+      });
+      if (finalLine) finalLine.classList.remove("is-visible");
+    }
 
     let running = false;
     let pendingTimers = [];
@@ -367,5 +432,12 @@
       if (!raf) raf = requestAnimationFrame(loop);
     });
   }
+
+  } // end init()
+
+  whenReady().then(() => {
+    hidePreloader();
+    init();
+  });
 
 })();

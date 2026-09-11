@@ -28,8 +28,19 @@
     />
     <link rel="stylesheet" href="stylesheet.css" />
     <script src="https://unpkg.com/@phosphor-icons/web@2.1.1" defer></script>
+    <noscript>
+      <style>
+        .preloader {
+          display: none;
+        }
+      </style>
+    </noscript>
   </head>
-  <body>
+  <body class="is-loading">
+    <div class="preloader" data-preloader aria-hidden="true">
+      <span class="preloader-mark"></span>
+    </div>
+
     <a href="#main" class="skip-link">Skip to content</a>
 
     <div class="scroll-progress" data-scroll-progress aria-hidden="true"></div>
