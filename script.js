@@ -264,44 +264,6 @@
     revealEls.forEach((el) => el.classList.add("is-visible"));
   }
 
-  /* ---------- Tagline word by word reveal ---------- */
-  const taglineEl = document.querySelector("[data-tagline]");
-
-  if (taglineEl) {
-    const words = taglineEl.textContent.trim().split(/\s+/);
-    taglineEl.textContent = "";
-
-    words.forEach((word, index) => {
-      const span = document.createElement("span");
-      span.className = "word";
-      span.textContent = word;
-      taglineEl.appendChild(span);
-      if (index < words.length - 1) {
-        taglineEl.appendChild(document.createTextNode(" "));
-      }
-    });
-
-    const wordEls = taglineEl.querySelectorAll(".word");
-
-    if ("IntersectionObserver" in window && wordEls.length) {
-      const wordObserver = new IntersectionObserver(
-        (entries, observer) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add("is-active");
-              observer.unobserve(entry.target);
-            }
-          });
-        },
-        { threshold: 0, rootMargin: "-45% 0px -45% 0px" }
-      );
-
-      wordEls.forEach((word) => wordObserver.observe(word));
-    } else {
-      wordEls.forEach((word) => word.classList.add("is-active"));
-    }
-  }
-
   /* ---------- Active nav link ---------- */
   const navLinks = document.querySelectorAll("[data-nav-link]");
   const sections = ["work", "skills", "contact"]
